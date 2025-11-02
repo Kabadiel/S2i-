@@ -1,0 +1,103 @@
+const SHEET_ID = '1Cdj-DUFoxPkyYGcjYjbpLSB1pHQNrczPBPvL4h049KY';
+const CALENDAR_ID = 'artursoaresbento@gmail.com';
+const EMAIL_REPRESENTANTE = 'artursoaresbento@gmail.com'; // ← Representante
+
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+
+    // 1. SALVA NA PLANILHA
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getActiveSheet();
+    sheet.appendRow([
+      new Date(),
+      data.nome,
+      data.empresa,
+      data.email,
+      data.telefone,
+      data.data,
+      data.horario,
+      data.assunto
+    ]);
+
+    // 2. CRIA EVENTO
+    const [y, m, d] = data.data.split('-');
+    const [h, min] = data.horario.split(':');
+    const start = new Date(y, m-1, d, h, min);
+    const end = new Date(start.getTime() + 3600000);
+
+    const event = CalendarApp.getCalendarById(CALENDAR_ID).createEvent(
+      `Visita Técnica - ${data.empresa}`, start, end,
+      { description: `${data.assunto}\n\n${data.nome} - ${data.email}`, guests: data.email, sendInvites: true }
+    );
+
+    const eventLink = `https://calendar.google.com/calendar/r/eventedit?text=${encodeURIComponent('Visita Técnica - ' + data.empresa)}&dates=${y}${m.padStart(2,'0')}${d.padStart(2,'0')}T${h.padStart(2,'0')}${min.padStart(2,'0')}00/${y}${m.padStart(2,'0')}${d.padStart(2,'0')}T${(h+1).toString().padStart(2,'0')}${min.padStart(2,'0')}00&details=${encodeURIComponent(data.assunto + '\n\n' + data.nome + ' - ' + data.email)}&location=S2i`;
+
+    // === E-MAIL PARA O CLIENTE ===
+    MailApp.sendEmail({
+      to: data.email,
+      subject: `S2i - Sua Visita Técnica Foi Agendada`,
+      htmlBody: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 12px; background: #f9f9fb;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://media.licdn.com/dms/image/C560BAQHgJ9mX0k0K2w/company-logo_200_200/0/1630570931141?e=2147483647&v=beta&t=3b9rV5hZ8qK2fJ1pO0k6j0yqFz8Z0Z0Z0Z0Z0Z0Z0Z0" width="80">
+            <h2 style="color: #0a3d62;">Visita Técnica Confirmada</h2>
+          </div>
+          <p><strong>Olá, ${data.nome}!</strong></p>
+          <p>Sua solicitação foi recebida com sucesso:</p>
+          <ul style="background: white; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <li><strong>Data:</strong> ${new Date(data.data).toLocaleDateString('pt-BR')}</li>
+            <li><strong>Horário:</strong> ${data.horario}</li>
+            <li><strong>Empresa:</strong> ${data.empresa}</li>
+          </ul>
+          <p style="text-align: center; margin: 25px 0;">
+            <a href="${eventLink}" target="_blank" style="background: #f39c12; color: white; padding: 14px 28px; text-decoration: none; border-radius: 10px; font-weight: bold; display: inline-block;">
+              Adicionar ao Meu Calendário
+            </a>
+          </p>
+          <p style="font-size: 0.9rem; color: #666; text-align: center;">
+            Um convite também foi enviado ao seu e-mail.
+          </p>
+          <hr>
+          <small style="color: #95a5a6; text-align: center;">S2i Distribuição Industrial</small>
+        </div>
+      `
+    });
+
+    // === E-MAIL PARA O REPRESENTANTE ===
+    MailApp.sendEmail({
+      to: EMAIL_REPRESENTANTE,
+      subject: `NOVA SOLICITAÇÃO: Visita Técnica - ${data.empresa}`,
+      htmlBody: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 12px; background: #f9f9fb;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <img src="https://media.licdn.com/dms/image/C560BAQHgJ9mX0k0K2w/company-logo_200_200/0/1630570931141?e=2147483647&v=beta&t=3b9rV5hZ8qK2fJ1pO0k6j0yqFz8Z0Z0Z0Z0Z0Z0Z0Z0" width="80">
+            <h2 style="color: #0a3d62;">Nova Solicitação de Visita Técnica</h2>
+          </div>
+          <p><strong>Uma nova solicitação foi registrada!</strong></p>
+          <p><strong>Cliente:</strong> ${data.nome}</p>
+          <p><strong>Empresa:</strong> ${data.empresa}</p>
+          <p><strong>E-mail:</strong> ${data.email}</p>
+          <p><strong>Telefone:</strong> ${data.telefone}</p>
+          <p><strong>Data:</strong> ${new Date(data.data).toLocaleDateString('pt-BR')}</p>
+          <p><strong>Horário:</strong> ${data.horario}</p>
+          <p><strong>Assunto:</strong> ${data.assunto}</p>
+          <hr>
+          <p style="background: #e8f5e9; padding: 12px; border-radius: 8px; font-weight: bold; color: #2e7d32; text-align: center;">
+            DADOS SALVOS NA PLANILHA DO GOOGLE SHEETS
+          </p>
+          <p style="text-align: center; margin: 20px 0;">
+            <a href="https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit" target="_blank" style="background: #0a3d62; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+              Abrir Planilha
+            </a>
+          </p>
+          <hr>
+          <small style="color: #95a5a6; text-align: center;">Sistema Automático S2i</small>
+        </div>
+      `
+    });
+
+    return ContentService.createTextOutput('success');
+  } catch (error) {
+    return ContentService.createTextOutput('error: ' + error.toString());
+  }
+}
