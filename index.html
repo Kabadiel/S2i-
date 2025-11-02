@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>S2i - Solicitação de Visita Técnica</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      color: #2c3e50;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      background: linear-gradient(135deg, #0a3d62 0%, #1e5799 100%);
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+    }
+    .header img {
+      width: 120px;
+      height: auto;
+      margin-bottom: 15px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+    .header h1 { font-size: 1.8rem; margin-bottom: 8px; font-weight: 700; }
+    .header p { font-size: 1.1rem; opacity: 0.9; }
+    .form-container { padding: 35px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; font-size: 0.95rem; }
+    input, select, textarea {
+      width: 100%; padding: 14px; border: 1.5px solid #ddd; border-radius: 10px; font-size: 16px;
+      background: #f9f9fb; transition: all 0.3s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: #f39c12; background: white;
+      box-shadow: 0 0 0 3px rgba(243, 156, 18, 0.15);
+    }
+    select { cursor: pointer; }
+    button {
+      background: linear-gradient(to right, #f39c12, #e67e22); color: white; border: none;
+      padding: 16px; font-size: 1.1rem; font-weight: 600; border-radius: 10px; cursor: pointer;
+      width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4); }
+    .msg { margin-top: 25px; padding: 16px; border-radius: 10px; text-align: center; font-weight: 500; font-size: 1rem; }
+    .loading { background: #e3f2fd; color: #1976d2; border: 1px solid #bbdefb; }
+    .success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+    .error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+    .hidden { display: none; }
+    .success small { display: block; margin-top: 10px; font-size: 0.9rem; opacity: 0.8; }
+    footer { text-align: center; padding: 25px; color: #7f8c8d; font-size: 0.9rem; background: #f8f9fa; border-top: 1px solid #eee; }
+    @media (max-width: 480px) {
+      .container { margin: 10px; border-radius: 12px; }
+      .form-container { padding: 25px; }
+      .header img { width: 100px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <img src="data:image/jpeg;base64,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" alt="Logo S2i">
+      <h1>S2i Distribuição Industrial</h1>
+      <p>Solicite uma visita técnica com nossos especialistas</p>
+    </header>
+
+    <div class="form-container">
+      <form id="form">
+        <div class="form-group"><label>Nome completo *</label><input type="text" id="nome" required /></div>
+        <div class="form-group"><label>Empresa *</label><input type="text" id="empresa" required /></div>
+        <div class="form-group"><label>E-mail *</label><input type="email" id="email" required /></div>
+        <div class="form-group"><label>Telefone *</label><input type="tel" id="telefone" required /></div>
+        <div class="form-group"><label>Data desejada *</label><input type="date" id="data" required /></div>
+        <div class="form-group">
+          <label>Horário preferencial *</label>
+          <select id="horario" required>
+            <option value="">Selecione um horário</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Assunto da visita *</label><textarea id="assunto" rows="4" placeholder="Descreva o objetivo da visita técnica..." required></textarea></div>
+        <button type="submit">Agendar Visita Técnica</button>
+      </form>
+
+      <div id="loading" class="msg loading hidden">Enviando solicitação...</div>
+      <div id="success" class="msg success hidden">
+        Sucesso! Solicitação enviada.<br>
+        <small>Você e o representante receberam um e-mail com os detalhes.</small>
+      </div>
+      <div id="error" class="msg error hidden"></div>
+    </div>
+
+    <footer>© 2025 S2i Distribuição Industrial. Todos os direitos reservados.</footer>
+  </div>
+
+  <script>
+    // GERA HORÁRIOS 07:00 a 18:00 (30 em 30 min)
+    const horarioSelect = document.getElementById('horario');
+    for (let h = 7; h <= 18; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        const time = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+        const option = document.createElement('option');
+        option.value = time;
+        option.textContent = time;
+        horarioSelect.appendChild(option);
+      }
+    }
+
+    const form = document.getElementById('form');
+    const loading = document.getElementById('loading');
+    const success = document.getElementById('success');
+    const error = document.getElementById('error');
+
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw_mGMKlaGRq-YUK0BSu92Ptkx7dZuSQ_fJfa2oJ0lN3ZM1oaYJQaXVihpeanVYDX8QUw/exec';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      [loading, success, error].forEach(el => el.classList.add('hidden'));
+      loading.classList.remove('hidden');
+
+      const data = {
+        nome: document.getElementById('nome').value.trim(),
+        empresa: document.getElementById('empresa').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        telefone: document.getElementById('telefone').value.trim(),
+        data: document.getElementById('data').value,
+        horario: document.getElementById('horario').value,
+        assunto: document.getElementById('assunto').value.trim()
+      };
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify(data)
+        });
+
+        setTimeout(() => {
+          loading.classList.add('hidden');
+          success.classList.remove('hidden');
+          form.reset();
+        }, 1800);
+
+      } catch (err) {
+        loading.classList.add('hidden');
+        error.classList.remove('hidden');
+        error.innerHTML = 'Erro de conexão. Tente novamente.';
+      }
+    });
+  </script>
+</body>
+</html>
